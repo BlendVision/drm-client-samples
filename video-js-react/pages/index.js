@@ -11,7 +11,7 @@ const options = {
   controls: true,
 }
 
-const bv1Options = {
+const bvOptions = {
   apiHost: '',
   orgId: '',
   apiKey: 'eyJh...',
@@ -19,7 +19,24 @@ const bv1Options = {
   resourceId: 'xxxxxxxx-xxxx-xxx-xxx-xxxxxxxxxxxx',
 }
 
-const SampleVideo = props => {
+const getVjsDrmOptions = streamInfo => {
+  if (!streamInfo.licenseUrl) {
+    return {}
+  }
+  const drmLicenseUrl = `${streamInfo.licenseUrl}/api/v3/drm/license`
+
+  return {
+    emeHeaders: streamInfo.playbackToken && {
+      'X-Custom-Data': `token_type=upfront&token_value=${streamInfo.playbackToken}`,
+    },
+    keySystems: {
+      'com.widevine.alpha': drmLicenseUrl,
+      'com.microsoft.playready': drmLicenseUrl,
+    },
+  }
+}
+
+const SampleVideo = () => {
   const videoRef = useRef(null)
   const playerRef = useRef(null)
 
@@ -35,23 +52,14 @@ const SampleVideo = props => {
       playerRef.current = player
       player.eme()
 
-      getStreamInfo(bv1Options).then(streamInfo => {
-        const drmOptions = streamInfo.licenseUrl && {
-          licenseUri: `${streamInfo.licenseUrl}/api/v3/drm/license`,
-          headers: {
-            'X-Custom-Data': `token_type=upfront&token_value=${streamInfo.playbackToken}`,
-          },
-        }
-        return player.src({
-          src: streamInfo.dash,
-          ...(drmOptions && {
-            emeHeaders: drmOptions.headers,
-            keySystems: {
-              'com.widevine.alpha': drmOptions.licenseUri,
-            },
-          }),
+      getStreamInfo(bvOptions)
+        .then(streamInfo => {
+          // check for Safari-only prefixed EME, pick HLS if available
+          const src = streamInfo[window.WebKitMediaKeys ? 'hls' : 'dash']
+          console.debug({streamInfo, src})
+          return player.src({src, ...getVjsDrmOptions(streamInfo)})
         })
-      }).catch(e => console.debug(e))
+        .catch(e => console.debug(e))
     }
   }, [])
 
