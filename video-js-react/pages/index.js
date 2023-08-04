@@ -5,6 +5,7 @@ import 'videojs-contrib-eme'
 import 'video.js/dist/video-js.css'
 import styles from '@/styles/Home.module.css'
 import getStreamInfo from '@/src/getStreamInfo'
+import {getFairplayAssetId, requestFairplayLicense} from '@/src/fairplay'
 
 const options = {
   autoplay: true,
@@ -32,6 +33,12 @@ const getVjsDrmOptions = streamInfo => {
     keySystems: {
       'com.widevine.alpha': drmLicenseUrl,
       'com.microsoft.playready': drmLicenseUrl,
+      'com.apple.fps.1_0': {
+        certificateUri: `${drmLicenseUrl}/fairplay_cert`,
+        licenseUri: drmLicenseUrl,
+        getContentId: getFairplayAssetId,
+        getLicense: requestFairplayLicense,
+      },
     },
   }
 }
