@@ -13,11 +13,15 @@ const options = {
 }
 
 const bvOptions = {
-  apiHost: '',
+  apiHost: 'https://api.one.blendvision.com/bv',
   orgId: '',
-  apiKey: 'eyJh...',
+  apiKey: '',
   resourceType: 'RESOURCE_TYPE_VOD',
-  resourceId: 'xxxxxxxx-xxxx-xxx-xxx-xxxxxxxxxxxx',
+  resourceId: '',
+  manifest_url_dash: '',
+  manifest_url_hls: '',
+  drmLicenseUrl: 'https://drm.platform.blendvision.com',
+  playbackToken: ''
 }
 
 const getVjsDrmOptions = streamInfo => {
@@ -59,14 +63,15 @@ const SampleVideo = () => {
       playerRef.current = player
       player.eme()
 
-      getStreamInfo(bvOptions)
-        .then(streamInfo => {
-          // check for Safari-only prefixed EME, pick HLS if available
-          const src = streamInfo[window.WebKitMediaKeys ? 'hls' : 'dash']
-          console.debug({streamInfo, src})
-          return player.src({src, ...getVjsDrmOptions(streamInfo)})
-        })
-        .catch(e => console.debug(e))
+      const streamInfo = {
+        hls: bvOptions.manifest_url_hls,
+        dash: bvOptions.manifest_url_dash,
+        licenseUrl: bvOptions.drmLicenseUrl,
+        playbackToken: bvOptions.playbackToken
+      }
+      const src = streamInfo[window.WebKitMediaKeys ? 'hls' : 'dash']
+      console.debug({streamInfo, src})
+      return player.src({src, ...getVjsDrmOptions(streamInfo)})
     }
   }, [])
 
