@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react'
 import Head from 'next/head'
 import videojs from 'video.js'
-import 'videojs-contrib-eme'
+import videojsContribEme from 'videojs-contrib-eme';
 import 'video.js/dist/video-js.css'
 import styles from '@/styles/Home.module.css'
 import getStreamInfo from '@/src/getStreamInfo'
@@ -46,6 +46,8 @@ const getVjsDrmOptions = streamInfo => {
     },
   }
 }
+
+videojs.registerPlugin('eme', videojsContribEme);
 
 const SampleVideo = () => {
   const videoRef = useRef(null)
